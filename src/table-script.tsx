@@ -14,25 +14,33 @@ import type { SourceDataType, TableDataType } from "./types";
  * @prop {string} person - The full name of the employee.
  * @prop {number} past12Months - The value for the past 12 months.
  * @prop {number} y2d - The year-to-date value.
- * @prop {number} may - The value for May.
- * @prop {number} june - The value for June.
+ * @prop {number} june - The value for june
  * @prop {number} july - The value for July.
+ * @prop {number} august - The value for august.
  * @prop {number} netEarningsPrevMonth - The net earnings for the previous month.
  */
 
 const tableData: TableDataType[] = (
   sourceData as unknown as SourceDataType[]
-).map((dataRow, index) => {
-  const person = `${dataRow?.employees?.firstname} - ...`;
+).map((dataRow) => {
+  const person = `${dataRow?.employees?.firstname ?? dataRow?.externals?.firstname ?? " N/A"} - ...`; //obtaining the first name of the employee
+  const past12Months =parseFloat(dataRow?.employees?.workforceUtilisation?.utilisationRateLastTwelveMonths || dataRow?.externals?.workforceUtilisation?.utilisationRateLastTwelveMonths ||  'N/A') ;//obtaining the utilisation rate for the past 12 months
+  const y2d =parseFloat(dataRow?.employees?.workforceUtilisation?.utilisationRateYearToDate ||dataRow?.externals?.workforceUtilisation?.utilisationRateYearToDate || 'N/A' );
+  const lastThreeMonths = dataRow?.employees?.workforceUtilisation?.lastThreeMonthsIndividually || dataRow?.externals?.workforceUtilisation?.lastThreeMonthsIndividually || [];
+  const juneUtilisation = parseFloat (lastThreeMonths[2]?.utilisationRate || 'N A');
+  const julyUtilisation = parseFloat (lastThreeMonths[1]?.utilisationRate || 'N/A');
+  const augustUtilisation = parseFloat (lastThreeMonths[0]?.utilisationRate || 'N/A');
+  
+  const netEarningsPrevMonth = dataRow?.employees?.workforceUtilisation?.totalCostPerCustomer || dataRow?.externals?.workforceUtilisation?.totalCostPerCustomer || 'N/A';
 
   const row: TableDataType = {
     person: `${person}`,
-    past12Months: `past12Months ${index} placeholder`,
-    y2d: `y2d ${index} placeholder`,
-    may: `may ${index} placeholder`,
-    june: `june ${index} placeholder`,
-    july: `july ${index} placeholder`,
-    netEarningsPrevMonth: `netEarningsPrevMonth ${index} placeholder`,
+    past12Months: ` ${past12Months *100  } % `,
+    y2d: ` ${y2d *100}  % `,
+    june: ` ${juneUtilisation *100} %`,
+    july: ` ${julyUtilisation *100} %`,
+    august: ` ${augustUtilisation *100} %`,
+    netEarningsPrevMonth: ` ${netEarningsPrevMonth} EUR `,
   };
 
   return row;
@@ -54,16 +62,16 @@ const Example = () => {
         header: "Y2D",
       },
       {
-        accessorKey: "may",
-        header: "May",
-      },
-      {
         accessorKey: "june",
         header: "June",
       },
       {
         accessorKey: "july",
         header: "July",
+      },
+      {
+        accessorKey: "august",
+        header: "August",
       },
       {
         accessorKey: "netEarningsPrevMonth",
